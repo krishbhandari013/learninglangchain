@@ -1,16 +1,17 @@
 import os
 
 from langchain_groq import ChatGroq
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.tools import Tool, tool
 from langchain_community.utilities import SerpAPIWrapper
+
+from dotenv import load_dotenv
 
 # ==================================================
 # API KEYS
 # ==================================================
 
-os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
-os.environ["SERPAPI_API_KEY"] = os.getenv("SERPAPI_API_KEY")
+load_dotenv()
 
 # ==================================================
 # LLM
@@ -52,7 +53,7 @@ def get_product_price(product_name: str):
 # CREATE AGENT
 # ==================================================
 
-agent = create_react_agent(
+agent = create_agent(
     model=llm,
     tools=[
         google_search,

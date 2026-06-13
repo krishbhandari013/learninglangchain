@@ -1,7 +1,7 @@
 langchain
 langgraph
 langchain_community
-langchain-groq
+langchain_groq
 langchain-google-genai
 python-dotenv
 ipykernel

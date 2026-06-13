@@ -11,6 +11,8 @@ dependencies = [
     "langchain-community>=0.4.2",
     "langchain-google-genai>=4.2.4",
     "langchain-groq>=1.1.2",
+    "langchain-tavily>=0.2.18",
     "langgraph>=1.2.4",
     "python-dotenv>=1.2.2",
+    "tavily-python>=0.7.26",
 ]
