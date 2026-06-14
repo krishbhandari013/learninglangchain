@@ -1,0 +1,1849 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans, 'Segoe UI', sans-serif); color: var(--color-text-primary); background: transparent; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+.app { display: flex; gap: 0; min-height: 640px; }
+
+/* Sidebar */
+.sidebar {
+  width: 230px; flex-shrink: 0;
+  border-right: 0.5px solid var(--color-border-tertiary);
+  padding: 16px 0;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 0 16px 14px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  margin-bottom: 8px;
+}
+.sidebar-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.sidebar-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.progress-bar-wrap { background: var(--color-border-tertiary); height: 4px; border-radius: 2px; margin-top: 8px; }
+.progress-bar-fill { background: #1D9E75; height: 4px; border-radius: 2px; transition: width .4s; }
+
+.section-label {
+  font-size: 10px; font-weight: 500; letter-spacing: .06em;
+  color: var(--color-text-tertiary); text-transform: uppercase;
+  padding: 10px 16px 4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 16px; cursor: pointer;
+  font-size: 13px; color: var(--color-text-secondary);
+  border-left: 2px solid transparent;
+  transition: background .15s, color .15s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.nav-item.active {
+  color: var(--color-text-primary); font-weight: 500;
+  border-left-color: #1D9E75;
+  background: var(--color-background-secondary);
+}
+.nav-item.done .nav-dot { background: #1D9E75; }
+.nav-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-border-secondary); flex-shrink: 0;
+}
+.nav-num { font-size: 10px; color: var(--color-text-tertiary); min-width: 16px; }
+
+/* Main content */
+.main { flex: 1; padding: 24px 28px; overflow-y: auto; max-height: 640px; }
+
+.lesson-header { margin-bottom: 20px; }
+.lesson-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500;
+  padding: 3px 10px; border-radius: 12px;
+  margin-bottom: 8px;
+}
+.badge-beginner { background: #E1F5EE; color: #0F6E56; }
+.badge-intermediate { background: #FAEEDA; color: #854F0B; }
+.badge-advanced { background: #FBEAF0; color: #993556; }
+.badge-project { background: #E6F1FB; color: #185FA5; }
+
+.lesson-title { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+.lesson-meta { font-size: 12px; color: var(--color-text-secondary); display: flex; gap: 14px; }
+
+.content-section { margin-bottom: 24px; }
+.content-section h3 { font-size: 15px; font-weight: 500; margin-bottom: 12px; color: var(--color-text-primary); }
+
+.concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.concept-card {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 10px; padding: 14px;
+}
+.concept-card-icon { font-size: 18px; margin-bottom: 6px; }
+.concept-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.concept-card p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+
+.code-block {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 8px; padding: 14px 16px;
+  font-family: var(--font-mono, monospace); font-size: 12px;
+  line-height: 1.7; overflow-x: auto; position: relative;
+  margin-bottom: 8px;
+}
+.code-block .comment { color: var(--color-text-tertiary); }
+.code-block .keyword { color: #534AB7; }
+.code-block .string { color: #0F6E56; }
+.code-block .func { color: #185FA5; }
+.code-block .var { color: #D85A30; }
+
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 10px; padding: 3px 8px;
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 5px; cursor: pointer; color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  transition: background .15s;
+}
+.copy-btn:hover { background: var(--color-background-secondary); }
+
+.concept-list { list-style: none; }
+.concept-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary);
+  font-size: 13px; line-height: 1.5;
+}
+.concept-list li:last-child { border-bottom: none; }
+.concept-list li::before {
+  content: '→'; color: #1D9E75; flex-shrink: 0;
+  font-weight: 500; margin-top: 1px;
+}
+
+.arch-diagram {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 10px; padding: 16px;
+  font-size: 12px;
+}
+
+.flow-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.flow-box {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 6px; padding: 5px 10px;
+  font-size: 12px; font-weight: 500;
+}
+.flow-box.green { border-color: #1D9E75; color: #0F6E56; }
+.flow-box.blue  { border-color: #378ADD; color: #185FA5; }
+.flow-box.amber { border-color: #BA7517; color: #854F0B; }
+.flow-box.purple{ border-color: #7F77DD; color: #534AB7; }
+.flow-box.pink  { border-color: #D4537E; color: #993556; }
+.flow-arrow { color: var(--color-text-tertiary); font-size: 14px; }
+
+.tip-box {
+  background: #E1F5EE; border: 0.5px solid #5DCAA5;
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 12px; color: #085041; line-height: 1.6;
+}
+.tip-box strong { color: #0F6E56; }
+
+.warn-box {
+  background: #FAEEDA; border: 0.5px solid #EF9F27;
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 12px; color: #633806; line-height: 1.6;
+}
+
+.quiz-section { margin-top: 20px; }
+.quiz-q { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+.quiz-options { display: grid; gap: 8px; }
+.quiz-opt {
+  padding: 10px 14px; border: 0.5px solid var(--color-border-secondary);
+  border-radius: 8px; cursor: pointer; font-size: 13px;
+  transition: all .15s; background: var(--color-background-primary);
+  text-align: left;
+}
+.quiz-opt:hover { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+.quiz-opt.correct { background: #E1F5EE; border-color: #1D9E75; color: #085041; }
+.quiz-opt.wrong   { background: #FCEBEB; border-color: #E24B4A; color: #501313; }
+.quiz-feedback { margin-top: 10px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+.quiz-feedback.show { display: block; }
+.quiz-feedback.ok { background: #E1F5EE; color: #085041; }
+.quiz-feedback.bad { background: #FCEBEB; color: #501313; }
+
+/* Nav buttons */
+.nav-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 28px; padding-top: 16px;
+  border-top: 0.5px solid var(--color-border-tertiary);
+}
+.btn {
+  padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary); color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+.btn:hover { background: var(--color-background-secondary); }
+.btn.primary {
+  background: #1D9E75; color: #fff; border-color: #1D9E75;
+}
+.btn.primary:hover { background: #0F6E56; }
+.btn:disabled { opacity: .4; cursor: default; }
+
+.interview-grid { display: grid; gap: 10px; }
+.interview-item {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 8px; padding: 12px 14px;
+}
+.interview-q { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.interview-a { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+
+.pill {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 500;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  color: var(--color-text-secondary);
+  margin: 2px;
+}
+
+.roadmap-step {
+  display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start;
+}
+.roadmap-num {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-secondary);
+  color: var(--color-text-secondary);
+}
+.roadmap-num.done { background: #E1F5EE; border-color: #1D9E75; color: #0F6E56; }
+.roadmap-content h4 { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.roadmap-content p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+</style>
+<h2 class="sr-only">LangChain Zero to Hero — Interactive course covering fundamentals through advanced production patterns, with code examples and interview prep</h2>
+
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar-header">
+      <div class="sidebar-title">🦜 LangChain Course</div>
+      <div class="sidebar-sub">Zero → Job-Ready</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="prog-bar" style="width:8%"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Foundations</div>
+    <div class="nav-item active" data-id="0" onclick="goto(0)"><span class="nav-num">01</span><span class="nav-dot"></span> What is LangChain?</div>
+    <div class="nav-item" data-id="1" onclick="goto(1)"><span class="nav-num">02</span><span class="nav-dot"></span> LLMs & Models</div>
+    <div class="nav-item" data-id="2" onclick="goto(2)"><span class="nav-num">03</span><span class="nav-dot"></span> Prompt Templates</div>
+    <div class="nav-item" data-id="3" onclick="goto(3)"><span class="nav-num">04</span><span class="nav-dot"></span> Output Parsers</div>
+
+    <div class="section-label">Core Chains</div>
+    <div class="nav-item" data-id="4" onclick="goto(4)"><span class="nav-num">05</span><span class="nav-dot"></span> Chains (LCEL)</div>
+    <div class="nav-item" data-id="5" onclick="goto(5)"><span class="nav-num">06</span><span class="nav-dot"></span> Memory & State</div>
+    <div class="nav-item" data-id="6" onclick="goto(6)"><span class="nav-num">07</span><span class="nav-dot"></span> Document Loaders</div>
+    <div class="nav-item" data-id="7" onclick="goto(7)"><span class="nav-num">08</span><span class="nav-dot"></span> Vector Stores & RAG</div>
+
+    <div class="section-label">Agents & Tools</div>
+    <div class="nav-item" data-id="8" onclick="goto(8)"><span class="nav-num">09</span><span class="nav-dot"></span> Tools & Toolkits</div>
+    <div class="nav-item" data-id="9" onclick="goto(9)"><span class="nav-num">10</span><span class="nav-dot"></span> Agents (ReAct)</div>
+    <div class="nav-item" data-id="10" onclick="goto(10)"><span class="nav-num">11</span><span class="nav-dot"></span> LangGraph Intro</div>
+
+    <div class="section-label">Production</div>
+    <div class="nav-item" data-id="11" onclick="goto(11)"><span class="nav-num">12</span><span class="nav-dot"></span> LangSmith & Tracing</div>
+    <div class="nav-item" data-id="12" onclick="goto(12)"><span class="nav-num">13</span><span class="nav-dot"></span> Streaming & Async</div>
+    <div class="nav-item" data-id="13" onclick="goto(13)"><span class="nav-num">14</span><span class="nav-dot"></span> Callbacks & Events</div>
+
+    <div class="section-label">Job Ready</div>
+    <div class="nav-item" data-id="14" onclick="goto(14)"><span class="nav-num">15</span><span class="nav-dot"></span> Capstone Projects</div>
+    <div class="nav-item" data-id="15" onclick="goto(15)"><span class="nav-num">16</span><span class="nav-dot"></span> Interview Prep</div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main" id="main-content" aria-live="polite">
+    <!-- content injected here -->
+  </main>
+</div>
+
+<script>
+const lessons = [
+{
+  id: 0, title: "What is LangChain?", badge: "beginner", badgeLabel: "Beginner",
+  time: "15 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-beginner">🌱 Beginner</span>
+    <div class="lesson-title">What is LangChain?</div>
+    <div class="lesson-meta"><span>⏱ 15 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Overview</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:14px">
+      LangChain is an open-source framework for building applications powered by large language models (LLMs).
+      It provides abstractions for chaining together LLM calls, tools, memory, and retrieval systems into
+      powerful, production-grade pipelines.
+    </p>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-card-icon">🔗</div>
+        <h4>Chains</h4>
+        <p>Compose multiple LLM calls and logic steps into a single pipeline using the | operator (LCEL)</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-icon">🧠</div>
+        <h4>Memory</h4>
+        <p>Persist conversation context across turns so your app can remember previous interactions</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-icon">🔍</div>
+        <h4>Retrieval (RAG)</h4>
+        <p>Load documents, embed them, and retrieve relevant context to answer questions accurately</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-icon">🤖</div>
+        <h4>Agents</h4>
+        <p>LLMs that decide which tools to call and in what order to complete a task autonomously</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>LangChain Ecosystem</h3>
+    <div class="arch-diagram">
+      <div class="flow-row">
+        <div class="flow-box green">langchain-core</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">langchain</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box amber">langchain-openai / anthropic</div>
+      </div>
+      <div class="flow-row" style="margin-top:8px">
+        <div class="flow-box purple">LangGraph (agents)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box pink">LangSmith (observability)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">LangServe (deployment)</div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--color-text-tertiary)">
+        langchain-core = interfaces & LCEL | langchain = chains & agents | community = 500+ integrations
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Installation</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Install core packages</span>
+pip install langchain langchain-openai langchain-community
+pip install langchain-anthropic  <span class="comment"># for Claude</span>
+pip install langgraph langsmith  <span class="comment"># for agents + tracing</span>
+
+<span class="comment"># Set your API key</span>
+<span class="keyword">import</span> os
+os.environ[<span class="string">"OPENAI_API_KEY"</span>] = <span class="string">"sk-..."</span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Your First LangChain App</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate
+<span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser
+
+<span class="comment"># 1. Define the LLM</span>
+<span class="var">llm</span> = ChatOpenAI(model=<span class="string">"gpt-4o"</span>, temperature=<span class="string">0.7</span>)
+
+<span class="comment"># 2. Create a prompt template</span>
+<span class="var">prompt</span> = ChatPromptTemplate.from_template(
+    <span class="string">"Tell me a fun fact about {topic}"</span>
+)
+
+<span class="comment"># 3. Build a chain with LCEL (pipe operator)</span>
+<span class="var">chain</span> = prompt | llm | StrOutputParser()
+
+<span class="comment"># 4. Run it!</span>
+<span class="var">result</span> = chain.invoke({<span class="string">"topic"</span>: <span class="string">"black holes"</span>})
+<span class="func">print</span>(result)
+    </div>
+    <div class="tip-box">
+      <strong>Key insight:</strong> The | (pipe) operator is LCEL — LangChain Expression Language. It composes
+      runnables left-to-right. The output of each step becomes the input of the next.
+    </div>
+  </div>
+
+  ${quiz([
+    { q: "What does LCEL stand for?", opts: ["LangChain Execution Layer", "LangChain Expression Language", "Large Context Expression Logic", "Language Chain Evaluation Loop"], correct: 1, explanation: "LCEL = LangChain Expression Language. It's the | pipe-based syntax for composing chains." }
+  ])}
+  `
+},
+{
+  id: 1, title: "LLMs & Chat Models", badge: "beginner", badgeLabel: "Beginner",
+  time: "20 min", concepts: 5,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-beginner">🌱 Beginner</span>
+    <div class="lesson-title">LLMs & Chat Models</div>
+    <div class="lesson-meta"><span>⏱ 20 min</span><span>📖 5 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>LLM vs ChatModel</h3>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="concept-card-icon">📝</div>
+        <h4>LLM (text-in, text-out)</h4>
+        <p>Takes a raw string, returns a string. Legacy API style. Use <strong>OpenAI</strong> class.</p>
+      </div>
+      <div class="concept-card">
+        <div class="concept-card-icon">💬</div>
+        <h4>ChatModel (messages-in, message-out)</h4>
+        <p>Takes a list of messages (system/human/ai). Modern standard. Use <strong>ChatOpenAI</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Message Types</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.messages <span class="keyword">import</span> (
+    SystemMessage, HumanMessage, AIMessage, ToolMessage
+)
+
+<span class="var">messages</span> = [
+    SystemMessage(content=<span class="string">"You are a helpful Python tutor."</span>),
+    HumanMessage(content=<span class="string">"What is a list comprehension?"</span>),
+]
+
+<span class="var">llm</span> = ChatOpenAI(model=<span class="string">"gpt-4o-mini"</span>)
+<span class="var">response</span> = llm.invoke(messages)
+<span class="func">print</span>(response.content)  <span class="comment"># AIMessage → .content</span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Supported Providers</h3>
+    <ul class="concept-list">
+      <li><code>ChatOpenAI</code> — GPT-4o, GPT-4o-mini (from langchain-openai)</li>
+      <li><code>ChatAnthropic</code> — Claude 3.5 Sonnet, Opus (from langchain-anthropic)</li>
+      <li><code>ChatGoogleGenerativeAI</code> — Gemini Pro/Flash (from langchain-google)</li>
+      <li><code>ChatOllama</code> — Local models: Llama 3, Mistral, etc. (from langchain-ollama)</li>
+      <li><code>AzureChatOpenAI</code> — Azure-hosted OpenAI deployments</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h3>Key Parameters</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="var">llm</span> = ChatOpenAI(
+    model=<span class="string">"gpt-4o"</span>,
+    temperature=<span class="string">0</span>,       <span class="comment"># 0=deterministic, 1=creative</span>
+    max_tokens=<span class="string">1024</span>,    <span class="comment"># max output tokens</span>
+    timeout=<span class="string">30</span>,         <span class="comment"># seconds before timeout</span>
+    max_retries=<span class="string">2</span>,      <span class="comment"># auto-retry on failure</span>
+    streaming=<span class="string">True</span>,     <span class="comment"># enable streaming</span>
+)
+
+<span class="comment"># Batch multiple calls efficiently</span>
+<span class="var">results</span> = llm.batch([
+    [HumanMessage(content=<span class="string">"Capital of France?"</span>)],
+    [HumanMessage(content=<span class="string">"Capital of Japan?"</span>)],
+])
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Structured Output (bind_tools)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel
+
+<span class="keyword">class</span> <span class="func">Joke</span>(BaseModel):
+    setup: str
+    punchline: str
+
+<span class="comment"># Force LLM to return structured JSON matching the schema</span>
+<span class="var">structured_llm</span> = llm.with_structured_output(Joke)
+<span class="var">joke</span> = structured_llm.invoke(<span class="string">"Tell me a programming joke"</span>)
+<span class="func">print</span>(joke.setup)     <span class="comment"># Guaranteed to be a string</span>
+<span class="func">print</span>(joke.punchline)  <span class="comment"># Guaranteed to be a string</span>
+    </div>
+    <div class="tip-box"><strong>Pro tip:</strong> Use <code>with_structured_output()</code> any time you need reliable, typed data from the LLM. It uses function calling under the hood for reliability.</div>
+  </div>
+
+  ${quiz([
+    { q: "Which class should you use for modern chat applications?", opts: ["LLM", "ChatOpenAI", "OpenAI", "TextModel"], correct: 1, explanation: "ChatOpenAI (or any ChatModel) takes messages and returns messages — the modern, recommended approach." }
+  ])}
+  `
+},
+{
+  id: 2, title: "Prompt Templates", badge: "beginner", badgeLabel: "Beginner",
+  time: "20 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-beginner">🌱 Beginner</span>
+    <div class="lesson-title">Prompt Templates</div>
+    <div class="lesson-meta"><span>⏱ 20 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Why Templates?</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:14px">
+      Prompts are the core of every LLM app. LangChain templates let you define prompts with variables, making them reusable, testable, and composable.
+    </p>
+  </div>
+
+  <div class="content-section">
+    <h3>PromptTemplate (simple)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> PromptTemplate
+
+<span class="comment"># Single string template</span>
+<span class="var">prompt</span> = PromptTemplate.from_template(
+    <span class="string">"Summarize this text in {num_words} words:\n\n{text}"</span>
+)
+
+<span class="comment"># Format it (returns a string)</span>
+<span class="var">formatted</span> = prompt.format(
+    num_words=<span class="string">50</span>,
+    text=<span class="string">"LangChain is a framework for..."</span>
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>ChatPromptTemplate (recommended)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate
+
+<span class="var">prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"You are a {role}. Answer in {language}."</span>),
+    (<span class="string">"human"</span>, <span class="string">"{question}"</span>),
+])
+
+<span class="comment"># Use in a chain</span>
+<span class="var">chain</span> = prompt | llm | StrOutputParser()
+<span class="var">result</span> = chain.invoke({
+    <span class="string">"role"</span>: <span class="string">"senior Python engineer"</span>,
+    <span class="string">"language"</span>: <span class="string">"English"</span>,
+    <span class="string">"question"</span>: <span class="string">"What is the GIL?"</span>
+})
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Few-Shot Prompting</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> FewShotChatMessagePromptTemplate
+
+<span class="var">examples</span> = [
+    {<span class="string">"input"</span>: <span class="string">"happy"</span>, <span class="string">"output"</span>: <span class="string">"sad"</span>},
+    {<span class="string">"input"</span>: <span class="string">"tall"</span>,  <span class="string">"output"</span>: <span class="string">"short"</span>},
+]
+
+<span class="var">example_prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"human"</span>, <span class="string">"{input}"</span>),
+    (<span class="string">"ai"</span>, <span class="string">"{output}"</span>),
+])
+
+<span class="var">few_shot_prompt</span> = FewShotChatMessagePromptTemplate(
+    examples=examples,
+    example_prompt=example_prompt,
+)
+
+<span class="var">final_prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"Give the antonym."</span>),
+    few_shot_prompt,
+    (<span class="string">"human"</span>, <span class="string">"{input}"</span>),
+])
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Partial Templates</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Lock in some variables, leave others open</span>
+<span class="var">prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"You are an expert in {domain}."</span>),
+    (<span class="string">"human"</span>, <span class="string">"{question}"</span>),
+])
+
+<span class="var">ml_prompt</span> = prompt.partial(domain=<span class="string">"machine learning"</span>)
+<span class="comment"># Now only {question} needs to be provided</span>
+    </div>
+  </div>
+
+  ${quiz([
+    { q: "What is the recommended prompt class for chat applications?", opts: ["PromptTemplate", "FewShotPromptTemplate", "ChatPromptTemplate", "StringPromptTemplate"], correct: 2, explanation: "ChatPromptTemplate handles multi-turn message lists with system/human/ai roles — perfect for chat models." }
+  ])}
+  `
+},
+{
+  id: 3, title: "Output Parsers", badge: "beginner", badgeLabel: "Beginner",
+  time: "15 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-beginner">🌱 Beginner</span>
+    <div class="lesson-title">Output Parsers</div>
+    <div class="lesson-meta"><span>⏱ 15 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>What are Output Parsers?</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:14px">
+      Output parsers transform the raw LLM response (an AIMessage or string) into a structured Python object — a list, dict, Pydantic model, etc.
+    </p>
+    <ul class="concept-list">
+      <li><strong>StrOutputParser</strong> — extracts .content string from AIMessage (most common)</li>
+      <li><strong>JsonOutputParser</strong> — parses LLM output as JSON dict/list</li>
+      <li><strong>PydanticOutputParser</strong> — validates output against a Pydantic model</li>
+      <li><strong>CommaSeparatedListOutputParser</strong> — splits comma-separated string into list</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h3>Pydantic Parser (recommended)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> PydanticOutputParser
+<span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field
+
+<span class="keyword">class</span> <span class="func">PersonInfo</span>(BaseModel):
+    name: str = Field(description=<span class="string">"The person's full name"</span>)
+    age: int = Field(description=<span class="string">"Their age in years"</span>)
+    skills: list[str] = Field(description=<span class="string">"List of technical skills"</span>)
+
+<span class="var">parser</span> = PydanticOutputParser(pydantic_object=PersonInfo)
+
+<span class="var">prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"Extract person info. {format_instructions}"</span>),
+    (<span class="string">"human"</span>, <span class="string">"{text}"</span>),
+]).partial(format_instructions=parser.get_format_instructions())
+
+<span class="var">chain</span> = prompt | llm | parser
+<span class="var">person</span> = chain.invoke({<span class="string">"text"</span>: <span class="string">"Alice, 28, knows Python and React"</span>})
+<span class="func">print</span>(person.name, person.age, person.skills)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>JSON Parser</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> JsonOutputParser
+
+<span class="var">chain</span> = prompt | llm | JsonOutputParser()
+<span class="comment"># Returns a Python dict automatically</span>
+
+<span class="comment"># For streaming JSON incrementally:</span>
+<span class="keyword">async for</span> chunk <span class="keyword">in</span> chain.astream({<span class="string">"text"</span>: <span class="string">"..."</span>}):
+    <span class="func">print</span>(chunk)  <span class="comment"># partial dict as it streams</span>
+    </div>
+    <div class="tip-box"><strong>Best practice:</strong> Prefer <code>llm.with_structured_output(MyModel)</code> over PydanticOutputParser when possible — it uses native function-calling and is more reliable.</div>
+  </div>
+
+  ${quiz([
+    { q: "Which parser is best for extracting a Python string from an AIMessage?", opts: ["JsonOutputParser", "PydanticOutputParser", "StrOutputParser", "XMLOutputParser"], correct: 2, explanation: "StrOutputParser simply extracts .content from an AIMessage — the simplest and most common parser." }
+  ])}
+  `
+},
+{
+  id: 4, title: "Chains & LCEL", badge: "intermediate", badgeLabel: "Intermediate",
+  time: "30 min", concepts: 6,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-intermediate">⚡ Intermediate</span>
+    <div class="lesson-title">Chains & LCEL</div>
+    <div class="lesson-meta"><span>⏱ 30 min</span><span>📖 6 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>LCEL Core Concept</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      LangChain Expression Language (LCEL) uses the <code>|</code> pipe operator to chain <em>Runnables</em> together. Every component in LangChain implements the Runnable interface.
+    </p>
+    <div class="arch-diagram">
+      <div class="flow-row">
+        <div class="flow-box green">prompt</div>
+        <div class="flow-arrow">|</div>
+        <div class="flow-box blue">llm</div>
+        <div class="flow-arrow">|</div>
+        <div class="flow-box amber">parser</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">final output</div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--color-text-tertiary)">
+        Each | creates a RunnableSequence. All get: .invoke() .stream() .batch() .ainvoke() .astream() .abatch()
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>RunnableParallel — run tasks in parallel</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableParallel, RunnablePassthrough
+
+<span class="comment"># Run two chains simultaneously</span>
+<span class="var">chain</span> = RunnableParallel(
+    summary=prompt_summary | llm | StrOutputParser(),
+    sentiment=prompt_sentiment | llm | StrOutputParser(),
+)
+<span class="var">result</span> = chain.invoke({<span class="string">"text"</span>: <span class="string">"..."</span>})
+<span class="comment"># result = {"summary": "...", "sentiment": "..."}</span>
+
+<span class="comment"># Pass-through: keep original input alongside new values</span>
+<span class="var">chain</span> = RunnableParallel(
+    context=retriever,
+    question=RunnablePassthrough()
+) | answer_chain
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>RunnableLambda — custom Python functions</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableLambda
+
+<span class="comment"># Wrap any function as a Runnable</span>
+<span class="keyword">def</span> <span class="func">uppercase</span>(text: str) -> str:
+    <span class="keyword">return</span> text.upper()
+
+<span class="var">chain</span> = prompt | llm | StrOutputParser() | RunnableLambda(uppercase)
+
+<span class="comment"># Or use the @chain decorator</span>
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> chain
+
+<span class="keyword">@chain</span>
+<span class="keyword">def</span> <span class="func">my_pipeline</span>(input_dict):
+    <span class="var">answer</span> = (prompt | llm | StrOutputParser()).invoke(input_dict)
+    <span class="keyword">return</span> {<span class="string">"answer"</span>: answer, <span class="string">"length"</span>: len(answer)}
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Branching with RunnableBranch</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnableBranch
+
+<span class="var">branch</span> = RunnableBranch(
+    (<span class="keyword">lambda</span> x: x[<span class="string">"topic"</span>] == <span class="string">"code"</span>, code_chain),
+    (<span class="keyword">lambda</span> x: x[<span class="string">"topic"</span>] == <span class="string">"math"</span>, math_chain),
+    default_chain  <span class="comment"># fallback</span>
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>itemgetter for dict manipulation</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> operator <span class="keyword">import</span> itemgetter
+
+<span class="comment"># Extract specific keys from a dict</span>
+<span class="var">chain</span> = {
+    <span class="string">"context"</span>: itemgetter(<span class="string">"question"</span>) | retriever,
+    <span class="string">"question"</span>: itemgetter(<span class="string">"question"</span>),
+} | rag_prompt | llm | StrOutputParser()
+    </div>
+    <div class="tip-box"><strong>LCEL advantage:</strong> Chains built with LCEL automatically support streaming, async, parallel execution, and LangSmith tracing — no extra code needed.</div>
+  </div>
+
+  ${quiz([
+    { q: "What does RunnablePassthrough do?", opts: ["Skips the step entirely", "Passes the input unchanged to the next step", "Parses the output to a string", "Retries on failure"], correct: 1, explanation: "RunnablePassthrough passes the input unchanged — useful for keeping the original input alongside processed data." }
+  ])}
+  `
+},
+{
+  id: 5, title: "Memory & State", badge: "intermediate", badgeLabel: "Intermediate",
+  time: "25 min", concepts: 5,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-intermediate">⚡ Intermediate</span>
+    <div class="lesson-title">Memory & Conversation State</div>
+    <div class="lesson-meta"><span>⏱ 25 min</span><span>📖 5 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>The Memory Problem</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      LLMs are stateless — each call is independent. Memory is how we give apps conversational context. LangChain v0.3+ recommends managing history manually or via LangGraph.
+    </p>
+  </div>
+
+  <div class="content-section">
+    <h3>ChatMessageHistory</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_community.chat_message_histories <span class="keyword">import</span> ChatMessageHistory
+<span class="keyword">from</span> langchain_core.runnables.history <span class="keyword">import</span> RunnableWithMessageHistory
+
+<span class="var">store</span> = {}  <span class="comment"># In-memory session store</span>
+
+<span class="keyword">def</span> <span class="func">get_session_history</span>(session_id: str):
+    <span class="keyword">if</span> session_id <span class="keyword">not in</span> store:
+        store[session_id] = ChatMessageHistory()
+    <span class="keyword">return</span> store[session_id]
+
+<span class="var">chain</span> = prompt | llm | StrOutputParser()
+
+<span class="var">with_history</span> = RunnableWithMessageHistory(
+    chain,
+    get_session_history,
+    input_messages_key=<span class="string">"question"</span>,
+    history_messages_key=<span class="string">"history"</span>,
+)
+
+<span class="comment"># Session 1</span>
+<span class="var">with_history</span>.invoke(
+    {<span class="string">"question"</span>: <span class="string">"My name is Alice"</span>},
+    config={<span class="string">"configurable"</span>: {<span class="string">"session_id"</span>: <span class="string">"user-1"</span>}}
+)
+<span class="var">with_history</span>.invoke(
+    {<span class="string">"question"</span>: <span class="string">"What is my name?"</span>},
+    config={<span class="string">"configurable"</span>: {<span class="string">"session_id"</span>: <span class="string">"user-1"</span>}}
+)
+<span class="comment"># → "Your name is Alice" ✓</span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Persistent History (Redis / SQL)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Redis-backed history</span>
+<span class="keyword">from</span> langchain_community.chat_message_histories <span class="keyword">import</span> RedisChatMessageHistory
+
+<span class="keyword">def</span> <span class="func">get_session_history</span>(session_id: str):
+    <span class="keyword">return</span> RedisChatMessageHistory(
+        session_id, url=<span class="string">"redis://localhost:6379"</span>
+    )
+
+<span class="comment"># SQLite-backed history</span>
+<span class="keyword">from</span> langchain_community.chat_message_histories <span class="keyword">import</span> SQLChatMessageHistory
+
+<span class="keyword">def</span> <span class="func">get_session_history</span>(session_id: str):
+    <span class="keyword">return</span> SQLChatMessageHistory(
+        session_id=session_id,
+        connection=<span class="string">"sqlite:///chat_history.db"</span>
+    )
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Trimming History (Token Management)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.messages <span class="keyword">import</span> trim_messages
+
+<span class="var">trimmer</span> = trim_messages(
+    max_tokens=<span class="string">2000</span>,
+    strategy=<span class="string">"last"</span>,  <span class="comment"># keep most recent messages</span>
+    token_counter=llm,
+    include_system=<span class="string">True</span>,
+    allow_partial=<span class="string">False</span>,
+    start_on=<span class="string">"human"</span>,  <span class="comment"># always start on a human message</span>
+)
+
+<span class="var">chain</span> = trimmer | prompt | llm | StrOutputParser()
+    </div>
+    <div class="warn-box"><strong>Caution:</strong> Long conversation histories increase cost rapidly. Always trim or summarize history for production apps.</div>
+  </div>
+
+  ${quiz([
+    { q: "How do you scope conversation history to a specific user in LangChain?", opts: ["Use global variables", "Use session_id in configurable config", "Use a different LLM per user", "Use ConversationBufferMemory"], correct: 1, explanation: "Pass a session_id via config={'configurable': {'session_id': 'user-123'}} to keep separate history per user." }
+  ])}
+  `
+},
+{
+  id: 6, title: "Document Loaders", badge: "intermediate", badgeLabel: "Intermediate",
+  time: "20 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-intermediate">⚡ Intermediate</span>
+    <div class="lesson-title">Document Loaders & Text Splitters</div>
+    <div class="lesson-meta"><span>⏱ 20 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Document Loaders</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      Loaders ingest data from many sources and convert it into LangChain <code>Document</code> objects (text content + metadata).
+    </p>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># PDF loader</span>
+<span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> PyPDFLoader
+<span class="var">docs</span> = PyPDFLoader(<span class="string">"report.pdf"</span>).load()
+
+<span class="comment"># Web page loader</span>
+<span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> WebBaseLoader
+<span class="var">docs</span> = WebBaseLoader(<span class="string">"https://example.com/article"</span>).load()
+
+<span class="comment"># CSV loader</span>
+<span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> CSVLoader
+<span class="var">docs</span> = CSVLoader(<span class="string">"data.csv"</span>).load()
+
+<span class="comment"># Each doc: doc.page_content, doc.metadata</span>
+<span class="func">print</span>(docs[<span class="string">0</span>].page_content[:200])
+<span class="func">print</span>(docs[<span class="string">0</span>].metadata)  <span class="comment"># {"source": ..., "page": 0}</span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Text Splitters</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      LLMs have limited context windows. Splitters break large docs into smaller chunks before embedding.
+    </p>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_text_splitters <span class="keyword">import</span> RecursiveCharacterTextSplitter
+
+<span class="var">splitter</span> = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="string">1000</span>,    <span class="comment"># characters per chunk</span>
+    chunk_overlap=<span class="string">200</span>,  <span class="comment"># overlap between chunks</span>
+    separators=[<span class="string">"\n\n"</span>, <span class="string">"\n"</span>, <span class="string">" "</span>, <span class="string">""</span>]
+)
+
+<span class="var">chunks</span> = splitter.split_documents(docs)
+<span class="func">print</span>(<span class="func">len</span>(chunks), <span class="string">"chunks created"</span>)
+
+<span class="comment"># Code-aware splitting (respects function/class boundaries)</span>
+<span class="keyword">from</span> langchain_text_splitters <span class="keyword">import</span> Language
+<span class="var">py_splitter</span> = RecursiveCharacterTextSplitter.from_language(
+    language=Language.PYTHON, chunk_size=<span class="string">500</span>
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Semantic Chunking (advanced)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_experimental.text_splitter <span class="keyword">import</span> SemanticChunker
+<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> OpenAIEmbeddings
+
+<span class="comment"># Splits on semantic similarity breaks (smarter than fixed chars)</span>
+<span class="var">splitter</span> = SemanticChunker(
+    OpenAIEmbeddings(),
+    breakpoint_threshold_type=<span class="string">"percentile"</span>,
+    breakpoint_threshold_amount=<span class="string">95</span>,
+)
+<span class="var">chunks</span> = splitter.split_documents(docs)
+    </div>
+    <div class="tip-box"><strong>Chunking strategy matters!</strong> Too small = lost context. Too large = noisy retrieval. 512–1024 tokens with 10–20% overlap is a good starting point.</div>
+  </div>
+
+  ${quiz([
+    { q: "What is chunk_overlap used for?", opts: ["Making chunks bigger", "Preventing context loss at chunk boundaries", "Reducing token count", "Deduplicating content"], correct: 1, explanation: "Overlap ensures that context near chunk boundaries isn't lost — important for coherent retrieval." }
+  ])}
+  `
+},
+{
+  id: 7, title: "Vector Stores & RAG", badge: "intermediate", badgeLabel: "Intermediate",
+  time: "35 min", concepts: 6,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-intermediate">⚡ Intermediate</span>
+    <div class="lesson-title">Vector Stores & RAG (Retrieval Augmented Generation)</div>
+    <div class="lesson-meta"><span>⏱ 35 min</span><span>📖 6 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>RAG Architecture</h3>
+    <div class="arch-diagram">
+      <div style="font-size:12px;font-weight:500;margin-bottom:10px">Indexing (offline)</div>
+      <div class="flow-row">
+        <div class="flow-box green">Documents</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">Splitter</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box amber">Embeddings</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">Vector DB</div>
+      </div>
+      <div style="font-size:12px;font-weight:500;margin:12px 0 8px">Query (online)</div>
+      <div class="flow-row">
+        <div class="flow-box green">Question</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">Embed question</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box amber">Similarity search</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">Top-k docs</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box pink">LLM + answer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Embeddings</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> OpenAIEmbeddings
+
+<span class="var">embeddings</span> = OpenAIEmbeddings(model=<span class="string">"text-embedding-3-small"</span>)
+
+<span class="comment"># Embed a query</span>
+<span class="var">query_vec</span> = embeddings.embed_query(<span class="string">"What is machine learning?"</span>)
+<span class="func">print</span>(<span class="func">len</span>(query_vec))  <span class="comment"># 1536 dimensions</span>
+
+<span class="comment"># Free alternative: HuggingFace sentence-transformers</span>
+<span class="keyword">from</span> langchain_community.embeddings <span class="keyword">import</span> HuggingFaceEmbeddings
+<span class="var">embeddings</span> = HuggingFaceEmbeddings(
+    model_name=<span class="string">"sentence-transformers/all-MiniLM-L6-v2"</span>
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Vector Stores</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># FAISS (local, fast, in-memory)</span>
+<span class="keyword">from</span> langchain_community.vectorstores <span class="keyword">import</span> FAISS
+
+<span class="var">vectorstore</span> = FAISS.from_documents(chunks, embeddings)
+vectorstore.save_local(<span class="string">"faiss_index"</span>)
+
+<span class="comment"># Load later</span>
+<span class="var">vectorstore</span> = FAISS.load_local(<span class="string">"faiss_index"</span>, embeddings,
+    allow_dangerous_deserialization=<span class="string">True</span>)
+
+<span class="comment"># Chroma (persistent, local)</span>
+<span class="keyword">from</span> langchain_chroma <span class="keyword">import</span> Chroma
+<span class="var">vectorstore</span> = Chroma.from_documents(
+    chunks, embeddings, persist_directory=<span class="string">"./chroma_db"</span>
+)
+
+<span class="comment"># Pinecone (production cloud)</span>
+<span class="keyword">from</span> langchain_pinecone <span class="keyword">import</span> PineconeVectorStore
+<span class="var">vectorstore</span> = PineconeVectorStore.from_documents(
+    chunks, embeddings, index_name=<span class="string">"my-index"</span>
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Full RAG Chain</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnablePassthrough
+
+<span class="keyword">def</span> <span class="func">format_docs</span>(docs):
+    <span class="keyword">return</span> <span class="string">"\n\n"</span>.join(doc.page_content <span class="keyword">for</span> doc <span class="keyword">in</span> docs)
+
+<span class="var">retriever</span> = vectorstore.as_retriever(
+    search_type=<span class="string">"mmr"</span>,  <span class="comment"># Max Marginal Relevance (diverse results)</span>
+    search_kwargs={<span class="string">"k"</span>: <span class="string">4</span>}  <span class="comment"># retrieve top 4 docs</span>
+)
+
+<span class="var">rag_prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"Answer ONLY from context. If unsure, say so.\n\nContext:\n{context}"</span>),
+    (<span class="string">"human"</span>, <span class="string">"{question}"</span>),
+])
+
+<span class="var">rag_chain</span> = (
+    {<span class="string">"context"</span>: retriever | format_docs, <span class="string">"question"</span>: RunnablePassthrough()}
+    | rag_prompt | llm | StrOutputParser()
+)
+
+<span class="var">answer</span> = rag_chain.invoke(<span class="string">"What does the document say about pricing?"</span>)
+    </div>
+  </div>
+
+  ${quiz([
+    { q: "What does MMR (Max Marginal Relevance) retrieval do?", opts: ["Returns the most similar document only", "Returns diverse, relevant documents to reduce redundancy", "Maximizes token usage", "Uses the maximum context window"], correct: 1, explanation: "MMR balances relevance AND diversity — it retrieves documents that are relevant but not all saying the same thing." }
+  ])}
+  `
+},
+{
+  id: 8, title: "Tools & Toolkits", badge: "intermediate", badgeLabel: "Intermediate",
+  time: "25 min", concepts: 5,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-intermediate">⚡ Intermediate</span>
+    <div class="lesson-title">Tools & Toolkits</div>
+    <div class="lesson-meta"><span>⏱ 25 min</span><span>📖 5 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>What are Tools?</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      Tools are functions that agents can call. They bridge the LLM's language capabilities with real-world actions: web search, database queries, code execution, API calls.
+    </p>
+  </div>
+
+  <div class="content-section">
+    <h3>Creating Custom Tools</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.tools <span class="keyword">import</span> tool
+
+<span class="comment"># Method 1: @tool decorator (simplest)</span>
+<span class="keyword">@tool</span>
+<span class="keyword">def</span> <span class="func">calculate_bmi</span>(weight_kg: float, height_m: float) -> str:
+    <span class="string">"""Calculate BMI from weight in kg and height in meters."""</span>
+    bmi = weight_kg / (height_m ** <span class="string">2</span>)
+    <span class="keyword">return</span> <span class="func">f</span><span class="string">"BMI is {bmi:.1f}"</span>
+
+<span class="comment"># Method 2: StructuredTool with Pydantic schema</span>
+<span class="keyword">from</span> langchain_core.tools <span class="keyword">import</span> StructuredTool
+<span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel
+
+<span class="keyword">class</span> <span class="func">SearchInput</span>(BaseModel):
+    query: str
+    max_results: int = <span class="string">5</span>
+
+<span class="keyword">def</span> <span class="func">web_search</span>(query: str, max_results: int = <span class="string">5</span>) -> list[str]:
+    <span class="string">"""Search the web and return results."""</span>
+    <span class="comment"># ... actual implementation</span>
+    <span class="keyword">return</span> [<span class="string">f"Result {i} for {query}"</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="func">range</span>(max_results)]
+
+<span class="var">search_tool</span> = StructuredTool.from_function(
+    func=web_search,
+    name=<span class="string">"web_search"</span>,
+    description=<span class="string">"Search the web for current information"</span>,
+    args_schema=SearchInput,
+)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Built-in Tools</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># DuckDuckGo web search (free)</span>
+<span class="keyword">from</span> langchain_community.tools <span class="keyword">import</span> DuckDuckGoSearchRun
+<span class="var">search</span> = DuckDuckGoSearchRun()
+
+<span class="comment"># Python REPL (code execution)</span>
+<span class="keyword">from</span> langchain_experimental.tools <span class="keyword">import</span> PythonREPLTool
+<span class="var">python_repl</span> = PythonREPLTool()
+
+<span class="comment"># Wikipedia</span>
+<span class="keyword">from</span> langchain_community.tools <span class="keyword">import</span> WikipediaQueryRun
+<span class="keyword">from</span> langchain_community.utilities <span class="keyword">import</span> WikipediaAPIWrapper
+<span class="var">wiki</span> = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
+
+<span class="comment"># SQL database queries</span>
+<span class="keyword">from</span> langchain_community.tools.sql_database.tool <span class="keyword">import</span> QuerySQLDataBaseTool
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Binding Tools to LLM</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="var">tools</span> = [calculate_bmi, search_tool, wiki]
+<span class="var">llm_with_tools</span> = llm.bind_tools(tools)
+
+<span class="comment"># LLM now returns ToolCall objects when it wants to use a tool</span>
+<span class="var">response</span> = llm_with_tools.invoke(<span class="string">"What is the BMI of a 70kg 1.75m person?"</span>)
+<span class="func">print</span>(response.tool_calls)
+<span class="comment"># [{'name': 'calculate_bmi', 'args': {'weight_kg': 70, 'height_m': 1.75}}]</span>
+    </div>
+    <div class="tip-box"><strong>Tool design tip:</strong> Write clear, specific docstrings — the LLM reads them to decide when to call each tool. Vague descriptions = wrong tool selection.</div>
+  </div>
+
+  ${quiz([
+    { q: "How does an LLM know when and how to use a tool?", opts: ["It's hard-coded in the LLM", "By reading the tool's docstring and schema", "Through a separate classifier model", "The developer must specify it in the prompt"], correct: 1, explanation: "The LLM reads the tool name, docstring, and parameter schema via function calling — good docs = better tool use." }
+  ])}
+  `
+},
+{
+  id: 9, title: "Agents (ReAct)", badge: "advanced", badgeLabel: "Advanced",
+  time: "35 min", concepts: 6,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-advanced">🚀 Advanced</span>
+    <div class="lesson-title">Agents & ReAct Pattern</div>
+    <div class="lesson-meta"><span>⏱ 35 min</span><span>📖 6 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>How Agents Work</h3>
+    <p style="font-size:13px;line-height:1.7;color:var(--color-text-secondary);margin-bottom:12px">
+      An agent uses an LLM to decide what to do next in a loop: <strong>Reason → Act → Observe → Repeat</strong> until it has a final answer.
+    </p>
+    <div class="arch-diagram">
+      <div class="flow-row">
+        <div class="flow-box green">User input</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">LLM: Think</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box amber">Tool call</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">Tool result</div>
+      </div>
+      <div class="flow-row" style="margin-top:6px">
+        <div style="flex:1"></div>
+        <div class="flow-arrow" style="transform:rotate(90deg);margin-left:60px">↑</div>
+        <div class="flow-box pink" style="margin-left:8px">Final answer</div>
+        <div class="flow-arrow">←</div>
+        <div class="flow-box blue">LLM: Observe</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Building an Agent with create_react_agent</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain.agents <span class="keyword">import</span> create_react_agent, AgentExecutor
+<span class="keyword">from</span> langchain import hub
+
+<span class="comment"># Pull ReAct prompt from LangChain Hub</span>
+<span class="var">prompt</span> = hub.pull(<span class="string">"hwchase17/react"</span>)
+
+<span class="var">tools</span> = [search_tool, python_repl, wiki]
+<span class="var">agent</span> = create_react_agent(llm, tools, prompt)
+
+<span class="var">agent_executor</span> = AgentExecutor(
+    agent=agent,
+    tools=tools,
+    verbose=<span class="string">True</span>,     <span class="comment"># see reasoning steps</span>
+    max_iterations=<span class="string">10</span>, <span class="comment"># prevent infinite loops</span>
+    handle_parsing_errors=<span class="string">True</span>,
+)
+
+<span class="var">result</span> = agent_executor.invoke({
+    <span class="string">"input"</span>: <span class="string">"What is today's Bitcoin price? Calculate how many BTC I get for $500."</span>
+})
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Tool-Calling Agent (modern, recommended)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain.agents <span class="keyword">import</span> create_tool_calling_agent
+
+<span class="var">prompt</span> = ChatPromptTemplate.from_messages([
+    (<span class="string">"system"</span>, <span class="string">"You are a helpful assistant. Use tools when needed."</span>),
+    (<span class="string">"placeholder"</span>, <span class="string">"{chat_history}"</span>),
+    (<span class="string">"human"</span>, <span class="string">"{input}"</span>),
+    (<span class="string">"placeholder"</span>, <span class="string">"{agent_scratchpad}"</span>),
+])
+
+<span class="comment"># More reliable than ReAct for modern models (uses function calling)</span>
+<span class="var">agent</span> = create_tool_calling_agent(llm, tools, prompt)
+<span class="var">executor</span> = AgentExecutor(agent=agent, tools=tools, verbose=<span class="string">True</span>)
+
+<span class="var">result</span> = executor.invoke({
+    <span class="string">"input"</span>: <span class="string">"Summarize the Wikipedia article about Python programming"</span>,
+    <span class="string">"chat_history"</span>: []
+})
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Multi-Agent Systems</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Supervisor pattern: one agent routes to specialist agents</span>
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate
+
+<span class="var">research_agent</span>  = create_tool_calling_agent(llm, [search_tool, wiki], ...)
+<span class="var">code_agent</span>      = create_tool_calling_agent(llm, [python_repl], ...)
+<span class="var">supervisor</span>      = create_tool_calling_agent(
+    llm,
+    [research_executor_tool, code_executor_tool],  <span class="comment"># agents as tools!</span>
+    supervisor_prompt
+)
+    </div>
+    <div class="tip-box"><strong>Use LangGraph for complex multi-agent flows.</strong> AgentExecutor is great for single agents. For conditional flows, loops, and human-in-the-loop — use LangGraph instead.</div>
+  </div>
+
+  ${quiz([
+    { q: "What is the main advantage of create_tool_calling_agent over create_react_agent?", opts: ["It's faster", "It uses native function calling, making tool selection more reliable", "It requires no prompt", "It supports more tools"], correct: 1, explanation: "Tool-calling agents use the LLM's native function-calling API (OpenAI tool_use, etc.) which is far more reliable than text-based ReAct parsing." }
+  ])}
+  `
+},
+{
+  id: 10, title: "LangGraph Intro", badge: "advanced", badgeLabel: "Advanced",
+  time: "40 min", concepts: 7,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-advanced">🚀 Advanced</span>
+    <div class="lesson-title">LangGraph — Stateful Multi-Step Agents</div>
+    <div class="lesson-meta"><span>⏱ 40 min</span><span>📖 7 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Why LangGraph?</h3>
+    <ul class="concept-list">
+      <li>AgentExecutor doesn't support conditional branching or loops well</li>
+      <li>LangGraph models agent flow as a <strong>stateful graph</strong> (nodes + edges)</li>
+      <li>Supports cycles, conditional edges, human-in-the-loop, and checkpointing</li>
+      <li>Built on top of LangChain — works with all existing components</li>
+    </ul>
+  </div>
+
+  <div class="content-section">
+    <h3>Core Concepts</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langgraph.graph <span class="keyword">import</span> StateGraph, END
+<span class="keyword">from</span> typing_extensions <span class="keyword">import</span> TypedDict, Annotated
+<span class="keyword">import</span> operator
+
+<span class="comment"># 1. Define the state (shared across all nodes)</span>
+<span class="keyword">class</span> <span class="func">AgentState</span>(TypedDict):
+    messages: Annotated[list, operator.add]  <span class="comment"># append-only list</span>
+    current_step: str
+    final_answer: str
+
+<span class="comment"># 2. Define nodes (functions that transform state)</span>
+<span class="keyword">def</span> <span class="func">research_node</span>(state: AgentState) -> AgentState:
+    <span class="var">result</span> = research_chain.invoke(state[<span class="string">"messages"</span>])
+    <span class="keyword">return</span> {<span class="string">"messages"</span>: [result], <span class="string">"current_step"</span>: <span class="string">"research_done"</span>}
+
+<span class="keyword">def</span> <span class="func">write_node</span>(state: AgentState) -> AgentState:
+    <span class="var">result</span> = write_chain.invoke(state[<span class="string">"messages"</span>])
+    <span class="keyword">return</span> {<span class="string">"messages"</span>: [result], <span class="string">"final_answer"</span>: result.content}
+
+<span class="comment"># 3. Define routing function</span>
+<span class="keyword">def</span> <span class="func">should_continue</span>(state: AgentState) -> str:
+    <span class="keyword">if</span> state[<span class="string">"current_step"</span>] == <span class="string">"research_done"</span>:
+        <span class="keyword">return</span> <span class="string">"write"</span>
+    <span class="keyword">return</span> END
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Building & Running the Graph</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># 4. Build the graph</span>
+<span class="var">graph</span> = StateGraph(AgentState)
+graph.add_node(<span class="string">"research"</span>, research_node)
+graph.add_node(<span class="string">"write"</span>, write_node)
+
+graph.set_entry_point(<span class="string">"research"</span>)
+graph.add_conditional_edges(<span class="string">"research"</span>, should_continue)
+graph.add_edge(<span class="string">"write"</span>, END)
+
+<span class="var">app</span> = graph.compile()
+
+<span class="comment"># Run it</span>
+<span class="var">result</span> = app.invoke({
+    <span class="string">"messages"</span>: [HumanMessage(content=<span class="string">"Write a report on AI trends"</span>)],
+    <span class="string">"current_step"</span>: <span class="string">""</span>,
+    <span class="string">"final_answer"</span>: <span class="string">""</span>
+})
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Human-in-the-Loop (HITL)</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langgraph.checkpoint.memory <span class="keyword">import</span> MemorySaver
+
+<span class="comment"># Checkpointer saves state between runs</span>
+<span class="var">checkpointer</span> = MemorySaver()
+<span class="var">app</span> = graph.compile(
+    checkpointer=checkpointer,
+    interrupt_before=[<span class="string">"write"</span>]  <span class="comment"># pause BEFORE write node</span>
+)
+
+<span class="var">config</span> = {<span class="string">"configurable"</span>: {<span class="string">"thread_id"</span>: <span class="string">"thread-1"</span>}}
+
+<span class="comment"># Run until interrupt</span>
+<span class="var">state</span> = app.invoke(initial_input, config=config)
+
+<span class="comment"># Human reviews and approves</span>
+<span class="func">print</span>(<span class="string">"Approve? (y/n)"</span>)
+<span class="keyword">if</span> <span class="func">input</span>() == <span class="string">"y"</span>:
+    <span class="var">final</span> = app.invoke(<span class="string">None</span>, config=config)  <span class="comment"># resume</span>
+    </div>
+    <div class="tip-box"><strong>LangGraph is the future of agents.</strong> For production agentic systems — always use LangGraph over AgentExecutor. It gives you full control over the execution flow.</div>
+  </div>
+
+  ${quiz([
+    { q: "What is the role of a 'state' in LangGraph?", opts: ["It holds the LLM's weights", "Shared data structure passed between and updated by all nodes", "A cached version of the prompt", "The agent's memory of past conversations"], correct: 1, explanation: "State is a TypedDict shared across all nodes. Each node receives the current state and returns updates to it." }
+  ])}
+  `
+},
+{
+  id: 11, title: "LangSmith & Tracing", badge: "advanced", badgeLabel: "Advanced",
+  time: "20 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-advanced">🚀 Advanced</span>
+    <div class="lesson-title">LangSmith — Observability & Evaluation</div>
+    <div class="lesson-meta"><span>⏱ 20 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Setup LangSmith</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">import</span> os
+os.environ[<span class="string">"LANGCHAIN_TRACING_V2"</span>]  = <span class="string">"true"</span>
+os.environ[<span class="string">"LANGCHAIN_API_KEY"</span>]      = <span class="string">"ls__..."</span>
+os.environ[<span class="string">"LANGCHAIN_PROJECT"</span>]      = <span class="string">"my-app-prod"</span>
+os.environ[<span class="string">"LANGCHAIN_ENDPOINT"</span>]     = <span class="string">"https://api.smith.langchain.com"</span>
+
+<span class="comment"># That's it! All LangChain calls are now traced automatically.</span>
+<span class="comment"># View traces at: smith.langchain.com</span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Custom Spans with @traceable</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langsmith <span class="keyword">import</span> traceable, Client
+
+<span class="keyword">@traceable</span>(name=<span class="string">"preprocess_query"</span>)
+<span class="keyword">def</span> <span class="func">preprocess</span>(query: str) -> str:
+    <span class="comment"># This will appear as a child span in LangSmith</span>
+    <span class="keyword">return</span> query.strip().lower()
+
+<span class="keyword">@traceable</span>
+<span class="keyword">def</span> <span class="func">full_pipeline</span>(query: str) -> str:
+    <span class="var">clean</span> = preprocess(query)  <span class="comment"># nested span</span>
+    <span class="keyword">return</span> rag_chain.invoke(clean)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Dataset Evaluation</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langsmith <span class="keyword">import</span> Client
+<span class="keyword">from</span> langchain.smith <span class="keyword">import</span> RunEvalConfig, run_on_dataset
+
+<span class="var">client</span> = Client()
+
+<span class="comment"># Create a dataset with ground truth Q&A pairs</span>
+<span class="var">dataset</span> = client.create_dataset(<span class="string">"rag-eval-v1"</span>)
+client.create_examples(
+    inputs=[{<span class="string">"question"</span>: <span class="string">"What is LangChain?"</span>}],
+    outputs=[{<span class="string">"answer"</span>: <span class="string">"A framework for LLM apps"</span>}],
+    dataset_id=dataset.id
+)
+
+<span class="comment"># Evaluate your chain against the dataset</span>
+<span class="var">eval_config</span> = RunEvalConfig(
+    evaluators=[<span class="string">"qa"</span>, <span class="string">"context_qa"</span>, <span class="string">"criteria"</span>],
+)
+<span class="var">results</span> = run_on_dataset(
+    client=client,
+    dataset_name=<span class="string">"rag-eval-v1"</span>,
+    llm_or_chain_factory=rag_chain,
+    evaluation=eval_config,
+)
+    </div>
+    <div class="tip-box"><strong>LangSmith is essential for production.</strong> You can't improve what you can't measure. Always add tracing before deploying to production.</div>
+  </div>
+
+  ${quiz([
+    { q: "What environment variable enables LangSmith tracing?", opts: ["LANGCHAIN_DEBUG=true", "LANGSMITH_ENABLED=1", "LANGCHAIN_TRACING_V2=true", "LANGCHAIN_LOG_LEVEL=trace"], correct: 2, explanation: "Set LANGCHAIN_TRACING_V2=true and LANGCHAIN_API_KEY to automatically trace all LangChain calls to LangSmith." }
+  ])}
+  `
+},
+{
+  id: 12, title: "Streaming & Async", badge: "advanced", badgeLabel: "Advanced",
+  time: "25 min", concepts: 5,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-advanced">🚀 Advanced</span>
+    <div class="lesson-title">Streaming & Async Patterns</div>
+    <div class="lesson-meta"><span>⏱ 25 min</span><span>📖 5 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Streaming Text Output</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Synchronous streaming</span>
+<span class="keyword">for</span> chunk <span class="keyword">in</span> chain.stream({<span class="string">"topic"</span>: <span class="string">"quantum computing"</span>}):
+    <span class="func">print</span>(chunk, end=<span class="string">""</span>, flush=<span class="string">True</span>)
+
+<span class="comment"># Async streaming (recommended for web apps)</span>
+<span class="keyword">async def</span> <span class="func">stream_response</span>():
+    <span class="keyword">async for</span> chunk <span class="keyword">in</span> chain.astream({<span class="string">"topic"</span>: <span class="string">"AI"</span>}):
+        <span class="func">print</span>(chunk, end=<span class="string">""</span>, flush=<span class="string">True</span>)
+        <span class="keyword">yield</span> chunk  <span class="comment"># useful for FastAPI StreamingResponse</span>
+
+<span class="comment"># Stream events (richer: includes tool calls, chain steps)</span>
+<span class="keyword">async for</span> event <span class="keyword">in</span> chain.astream_events({<span class="string">"input"</span>: <span class="string">"..."</span>}, version=<span class="string">"v2"</span>):
+    <span class="keyword">if</span> event[<span class="string">"event"</span>] == <span class="string">"on_chat_model_stream"</span>:
+        <span class="func">print</span>(event[<span class="string">"data"</span>][<span class="string">"chunk"</span>].content, end=<span class="string">""</span>)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>FastAPI Streaming Endpoint</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI
+<span class="keyword">from</span> fastapi.responses <span class="keyword">import</span> StreamingResponse
+
+<span class="var">app</span> = FastAPI()
+
+<span class="keyword">@app</span>.post(<span class="string">"/chat"</span>)
+<span class="keyword">async def</span> <span class="func">chat</span>(body: dict):
+    <span class="keyword">async def</span> <span class="func">generate</span>():
+        <span class="keyword">async for</span> chunk <span class="keyword">in</span> chain.astream(body):
+            <span class="keyword">yield</span> <span class="func">f</span><span class="string">"data: {chunk}\n\n"</span>  <span class="comment"># SSE format</span>
+    <span class="keyword">return</span> StreamingResponse(generate(), media_type=<span class="string">"text/event-stream"</span>)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Async Batch Processing</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">import</span> asyncio
+
+<span class="comment"># Process many inputs concurrently</span>
+<span class="var">inputs</span> = [{<span class="string">"topic"</span>: t} <span class="keyword">for</span> t <span class="keyword">in</span> [<span class="string">"AI"</span>, <span class="string">"ML"</span>, <span class="string">"DL"</span>, <span class="string">"NLP"</span>]]
+
+<span class="comment"># abatch handles concurrency automatically</span>
+<span class="var">results</span> = <span class="keyword">await</span> chain.abatch(inputs, config={<span class="string">"max_concurrency"</span>: <span class="string">4</span>})
+
+<span class="comment"># Or use asyncio.gather for custom logic</span>
+<span class="var">tasks</span> = [chain.ainvoke(inp) <span class="keyword">for</span> inp <span class="keyword">in</span> inputs]
+<span class="var">results</span> = <span class="keyword">await</span> asyncio.gather(*tasks)
+    </div>
+    <div class="tip-box"><strong>Always use async in production.</strong> Async prevents blocking — a single web server can handle hundreds of concurrent LLM requests instead of one at a time.</div>
+  </div>
+
+  ${quiz([
+    { q: "Which method gives you the richest streaming events (including tool calls)?", opts: [".stream()", ".astream()", ".astream_events()", ".abatch()"], correct: 2, explanation: "astream_events() provides granular events: on_chat_model_stream, on_tool_start, on_tool_end, on_chain_start, etc." }
+  ])}
+  `
+},
+{
+  id: 13, title: "Callbacks & Events", badge: "advanced", badgeLabel: "Advanced",
+  time: "20 min", concepts: 4,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-advanced">🚀 Advanced</span>
+    <div class="lesson-title">Callbacks, Events & Custom Handlers</div>
+    <div class="lesson-meta"><span>⏱ 20 min</span><span>📖 4 concepts</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Custom Callback Handler</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.callbacks <span class="keyword">import</span> BaseCallbackHandler
+
+<span class="keyword">class</span> <span class="func">LoggingHandler</span>(BaseCallbackHandler):
+    <span class="keyword">def</span> <span class="func">on_llm_start</span>(self, serialized, prompts, **kwargs):
+        <span class="func">print</span>(<span class="func">f</span><span class="string">"LLM started. Prompt: {prompts[0][:50]}..."</span>)
+
+    <span class="keyword">def</span> <span class="func">on_llm_end</span>(self, response, **kwargs):
+        tokens = response.llm_output.get(<span class="string">"token_usage"</span>, {})
+        <span class="func">print</span>(<span class="func">f</span><span class="string">"Tokens used: {tokens}"</span>)
+
+    <span class="keyword">def</span> <span class="func">on_tool_start</span>(self, serialized, input_str, **kwargs):
+        <span class="func">print</span>(<span class="func">f</span><span class="string">"Tool called: {serialized['name']} ({input_str})"</span>)
+
+    <span class="keyword">def</span> <span class="func">on_chain_error</span>(self, error, **kwargs):
+        <span class="func">print</span>(<span class="func">f</span><span class="string">"Chain error: {error}"</span>)
+
+<span class="comment"># Use it</span>
+<span class="var">handler</span> = LoggingHandler()
+<span class="var">result</span> = chain.invoke({<span class="string">"topic"</span>: <span class="string">"AI"</span>}, config={<span class="string">"callbacks"</span>: [handler]})
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Token Usage Tracking</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_community.callbacks <span class="keyword">import</span> get_openai_callback
+
+<span class="keyword">with</span> get_openai_callback() <span class="keyword">as</span> cb:
+    <span class="var">result</span> = chain.invoke({<span class="string">"topic"</span>: <span class="string">"AI"</span>})
+    <span class="func">print</span>(<span class="func">f</span><span class="string">"Tokens: {cb.total_tokens}"</span>)
+    <span class="func">print</span>(<span class="func">f</span><span class="string">"Cost: \${cb.total_cost:.5f}"</span>)
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Async Callback Handler</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="keyword">from</span> langchain_core.callbacks <span class="keyword">import</span> AsyncCallbackHandler
+
+<span class="keyword">class</span> <span class="func">StreamingWebsocketHandler</span>(AsyncCallbackHandler):
+    <span class="keyword">def</span> <span class="func">__init__</span>(self, websocket):
+        self.websocket = websocket
+
+    <span class="keyword">async def</span> <span class="func">on_llm_new_token</span>(self, token: str, **kwargs):
+        <span class="comment"># Send each token to the websocket in real-time</span>
+        <span class="keyword">await</span> self.websocket.send_text(token)
+    </div>
+    <div class="tip-box"><strong>Callbacks vs astream_events:</strong> Use callbacks for cross-cutting concerns (logging, metrics, billing). Use astream_events when you need to react to specific events in your app's UI.</div>
+  </div>
+
+  ${quiz([
+    { q: "Which callback method receives each individual token during streaming?", opts: ["on_llm_start", "on_llm_end", "on_llm_new_token", "on_chain_stream"], correct: 2, explanation: "on_llm_new_token is called once per streamed token — perfect for real-time UIs and websockets." }
+  ])}
+  `
+},
+{
+  id: 14, title: "Capstone Projects", badge: "project", badgeLabel: "Projects",
+  time: "Build", concepts: 5,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-project">🏆 Project</span>
+    <div class="lesson-title">Capstone Projects — Build Your Portfolio</div>
+    <div class="lesson-meta"><span>🛠 Build these to get hired</span></div>
+  </div>
+
+  <div class="content-section">
+    <h3>Project 1: RAG Chatbot over PDFs</h3>
+    <div class="concept-card" style="margin-bottom:12px">
+      <h4>Tech stack: FAISS + OpenAI + FastAPI + Streamlit</h4>
+      <p>Upload PDFs, chat with them. Demonstrates: document loading, chunking, vector store, retrieval chain, streaming, session memory.</p>
+      <div class="tag-row">
+        <span class="pill">PyPDFLoader</span><span class="pill">RecursiveCharacterTextSplitter</span>
+        <span class="pill">FAISS</span><span class="pill">RunnableWithMessageHistory</span>
+        <span class="pill">StreamingResponse</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Project 2: AI Research Agent</h3>
+    <div class="concept-card" style="margin-bottom:12px">
+      <h4>Tech stack: LangGraph + Tavily Search + Arxiv + GPT-4o</h4>
+      <p>Give a topic, get a structured research report. Agent autonomously searches web, finds papers, synthesizes findings.</p>
+      <div class="tag-row">
+        <span class="pill">LangGraph StateGraph</span><span class="pill">TavilySearchResults</span>
+        <span class="pill">ArxivQueryRun</span><span class="pill">PydanticOutputParser</span>
+        <span class="pill">LangSmith tracing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Project 3: SQL Agent</h3>
+    <div class="concept-card" style="margin-bottom:12px">
+      <h4>Tech stack: LangChain SQL + SQLite/PostgreSQL</h4>
+      <p>Natural language → SQL queries. Users describe what they want, agent generates and executes safe SQL.</p>
+      <div class="tag-row">
+        <span class="pill">SQLDatabase</span><span class="pill">create_sql_agent</span>
+        <span class="pill">QuerySQLDataBaseTool</span><span class="pill">ListSQLDatabaseTool</span>
+        <span class="pill">Human-in-the-loop</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Project 4: Multi-Agent Content Pipeline</h3>
+    <div class="concept-card" style="margin-bottom:12px">
+      <h4>Tech stack: LangGraph + multiple specialized agents</h4>
+      <p>Supervisor routes tasks: researcher → writer → editor → SEO optimizer. Each is a specialized agent with its own tools.</p>
+      <div class="tag-row">
+        <span class="pill">LangGraph</span><span class="pill">Supervisor pattern</span>
+        <span class="pill">RunnableParallel</span><span class="pill">MemorySaver</span>
+        <span class="pill">interrupt_before</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h3>Project 5: Production API with Evaluation</h3>
+    <div class="concept-card" style="margin-bottom:12px">
+      <h4>Tech stack: FastAPI + LangSmith + Docker</h4>
+      <p>Production-grade RAG API with rate limiting, cost tracking, A/B testing prompts, and automated evaluation pipelines.</p>
+      <div class="tag-row">
+        <span class="pill">LangSmith datasets</span><span class="pill">run_on_dataset</span>
+        <span class="pill">get_openai_callback</span><span class="pill">Docker</span>
+        <span class="pill">Redis session store</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip-box"><strong>Portfolio tip:</strong> Put each project on GitHub with a live demo (Streamlit Cloud / Railway). Include a LangSmith trace screenshot in the README. This impresses interviewers enormously.</div>
+  `
+},
+{
+  id: 15, title: "Interview Prep", badge: "project", badgeLabel: "Job Ready",
+  time: "Study", concepts: 20,
+  content: () => `
+  <div class="lesson-header">
+    <span class="lesson-badge badge-project">💼 Job Ready</span>
+    <div class="lesson-title">Interview Questions & Answers</div>
+    <div class="lesson-meta"><span>🎯 Top 20 questions for LangChain/LLM engineer roles</span></div>
+  </div>
+
+  <div class="interview-grid">
+    <div class="interview-item">
+      <div class="interview-q">Q: What is LCEL and why was it introduced?</div>
+      <div class="interview-a">LCEL (LangChain Expression Language) uses the | pipe operator to compose Runnables. It was introduced to provide a unified interface with built-in support for streaming, async, batching, and tracing — replacing verbose legacy chains.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: How does RAG work and when would you use it?</div>
+      <div class="interview-a">RAG embeds documents into a vector store, then at query time retrieves the most relevant chunks via cosine similarity and passes them as context to the LLM. Use RAG when the LLM's knowledge is outdated or when you need answers from private/proprietary documents.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: What's the difference between AgentExecutor and LangGraph?</div>
+      <div class="interview-a">AgentExecutor is a simple while-loop runner for agents. LangGraph models agent flow as a stateful directed graph supporting conditional branching, cycles, checkpointing, and human-in-the-loop — essential for complex production agents.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: How do you prevent hallucinations in RAG?</div>
+      <div class="interview-a">Prompt the LLM to answer ONLY from context and say "I don't know" if unsure. Use citation grounding (return source chunks). Evaluate with faithfulness metrics in LangSmith. Use cross-encoder reranking to improve retrieval quality.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: How do you handle token limits in long conversations?</div>
+      <div class="interview-a">Use trim_messages() to keep only recent messages. Implement conversation summarization — periodically compress old messages into a summary. Use tools like TokenTextSplitter. Store only summaries in short-term memory.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: What is chunk_overlap and why does it matter?</div>
+      <div class="interview-a">Overlap is the number of characters repeated between adjacent chunks. Without overlap, context near chunk boundaries is split and lost during retrieval. Typically 10-20% of chunk_size is recommended.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: How do you make an agent's tool use reliable?</div>
+      <div class="interview-a">Use create_tool_calling_agent (function calling API, not ReAct text parsing). Write detailed tool docstrings and Pydantic schemas. Add input validation in tools. Use max_iterations to prevent loops. Add error handling and retry logic.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: What is MMR retrieval and when would you use it?</div>
+      <div class="interview-a">Max Marginal Relevance retrieves documents that are both relevant AND diverse — avoiding returning 4 chunks that all say the same thing. Use MMR when you have many similar documents and want broader coverage.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: How do you evaluate a RAG pipeline?</div>
+      <div class="interview-a">Key metrics: faithfulness (does the answer match the context?), answer relevance (does it answer the question?), context precision (are retrieved docs relevant?), context recall (are all relevant docs retrieved?). Use RAGAS library or LangSmith evaluators.</div>
+    </div>
+    <div class="interview-item">
+      <div class="interview-q">Q: What's the difference between with_structured_output and PydanticOutputParser?</div>
+      <div class="interview-a">with_structured_output uses native function calling — the LLM is forced to return structured JSON by the API. PydanticOutputParser instructs via text in the prompt. with_structured_output is more reliable; use it when the LLM supports it.</div>
+    </div>
+  </div>
+
+  <div class="content-section" style="margin-top:20px">
+    <h3>Key Concepts Cheat Sheet</h3>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Critical imports to memorize</span>
+<span class="keyword">from</span> langchain_core.prompts <span class="keyword">import</span> ChatPromptTemplate
+<span class="keyword">from</span> langchain_core.output_parsers <span class="keyword">import</span> StrOutputParser, JsonOutputParser
+<span class="keyword">from</span> langchain_core.runnables <span class="keyword">import</span> RunnablePassthrough, RunnableParallel
+<span class="keyword">from</span> langchain_core.messages <span class="keyword">import</span> HumanMessage, AIMessage, SystemMessage
+<span class="keyword">from</span> langchain_core.tools <span class="keyword">import</span> tool
+<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI, OpenAIEmbeddings
+<span class="keyword">from</span> langchain_community.vectorstores <span class="keyword">import</span> FAISS
+<span class="keyword">from</span> langchain_text_splitters <span class="keyword">import</span> RecursiveCharacterTextSplitter
+<span class="keyword">from</span> langchain.agents <span class="keyword">import</span> create_tool_calling_agent, AgentExecutor
+<span class="keyword">from</span> langgraph.graph <span class="keyword">import</span> StateGraph, END
+    </div>
+  </div>
+
+  <div class="tip-box" style="margin-top:12px">
+    <strong>🎉 You're job-ready!</strong> You've covered: LLMs, Prompts, Chains (LCEL), Memory, RAG, Agents, LangGraph, LangSmith, Streaming, and Production patterns. Build the 5 capstone projects and you'll be in the top 5% of LangChain engineers.
+  </div>
+  `
+}
+];
+
+let current = 0;
+let completed = new Set();
+
+function quiz(questions) {
+  return `<div class="quiz-section">
+    <h3>Quick Check</h3>
+    ${questions.map((q, qi) => `
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-options" id="quiz-${qi}">
+      ${q.opts.map((o, oi) => `
+        <button class="quiz-opt" onclick="checkAnswer(${qi}, ${oi}, ${q.correct}, '${q.explanation.replace(/'/g, "\\'")}')">
+          ${String.fromCharCode(65+oi)}. ${o}
+        </button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="fb-${qi}"></div>
+    `).join('')}
+  </div>`;
+}
+
+function checkAnswer(qi, chosen, correct, explanation) {
+  const container = document.getElementById('quiz-' + qi);
+  const buttons = container.querySelectorAll('.quiz-opt');
+  const fb = document.getElementById('fb-' + qi);
+  buttons.forEach(b => b.disabled = true);
+  buttons[correct].classList.add('correct');
+  if (chosen !== correct) buttons[chosen].classList.add('wrong');
+  fb.className = 'quiz-feedback show ' + (chosen === correct ? 'ok' : 'bad');
+  fb.textContent = (chosen === correct ? '✓ Correct! ' : '✗ Not quite. ') + explanation;
+}
+
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const text = block.innerText.replace('Copy', '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function render() {
+  const lesson = lessons[current];
+  document.getElementById('main-content').innerHTML = lesson.content();
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const active = document.querySelector(`[data-id="${current}"]`);
+  if (active) { active.classList.add('active'); active.scrollIntoView({block:'nearest'}); }
+  const pct = Math.round((completed.size / lessons.length) * 100);
+  document.getElementById('prog-bar').style.width = pct + '%';
+  // Add nav buttons
+  const main = document.getElementById('main-content');
+  const nav = document.createElement('div');
+  nav.className = 'nav-actions';
+  nav.innerHTML = `
+    <button class="btn" onclick="goto(${current-1})" ${current===0?'disabled':''}>← Previous</button>
+    <span style="font-size:12px;color:var(--color-text-tertiary)">${current+1} / ${lessons.length}</span>
+    <button class="btn primary" onclick="markDone()" id="done-btn">
+      ${completed.has(current) ? '✓ Completed' : 'Mark complete →'}
+    </button>
+  `;
+  main.appendChild(nav);
+  if (completed.has(current)) document.getElementById('done-btn').style.background = '#0F6E56';
+}
+
+function goto(id) {
+  if (id < 0 || id >= lessons.length) return;
+  current = id;
+  render();
+  document.getElementById('main-content').scrollTop = 0;
+}
+
+function markDone() {
+  completed.add(current);
+  const dot = document.querySelector(`[data-id="${current}"] .nav-dot`);
+  if (dot) dot.classList.add && (dot.style.background = '#1D9E75');
+  document.querySelectorAll(`[data-id="${current}"]`)[0].classList.add('done');
+  if (current < lessons.length - 1) goto(current + 1);
+  else render();
+}
+
+render();
+</script>
