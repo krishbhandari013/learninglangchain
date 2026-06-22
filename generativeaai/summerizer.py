@@ -5,6 +5,7 @@ from langchain_groq import ChatGroq
 from langchain_tavily import TavilySearch
 from langchain_core.tools import tool
 from langchain.agents import create_agent
+
 from langgraph.checkpoint.memory import InMemorySaver
 
 # -------------------
@@ -33,7 +34,7 @@ tools = [web_search]
 memory = InMemorySaver()
 
 # -------------------
-# AGENT
+# AGENT (NEW API)
 # -------------------
 agent = create_agent(
     model=model,
@@ -51,20 +52,20 @@ config = {
 }
 
 # -------------------
-# ✅ SIMPLE SUMMARIZER
+# SIMPLE SUMMARIZER
 # -------------------
-def summarize_if_needed(history):
-    if len(history) < 10:
-        return history
+def summarize_if_needed(messages, llm):
+    if len(messages) < 12:
+        return messages
 
-    summary = model.invoke(
-        [("system", "Summarize this conversation briefly."),
-         *history]
-    ).content
-    print("\n📌 SUMMARY GENERATED:\n", summary) 
-    print(" \n summery ended")
+    prompt = [
+        ("system", "Summarize this conversation concisely, keep key facts."),
+        *messages
+    ]
 
-    return [("system", f"Summary: {summary}")]
+    summary = llm.invoke(prompt).content
+
+    return [("system", f"Conversation summary: {summary}")]
 
 # -------------------
 # CHAT LOOP
@@ -76,17 +77,17 @@ while True:
     if user_input.lower() == "exit":
         break
 
-    # ✅ get history safely
+    # ✅ Get previous messages
     state = memory.get(config)
-    history = state.get("channel_values", {}).get("messages", []) if state else []
+    history = state["messages"] if state else []
 
-    # ✅ apply summarization
-    history = summarize_if_needed(history)
+    # ✅ Apply summarization middleware manually
+    summarized_history = summarize_if_needed(history, model)
 
-    # ✅ call agent
+    # ✅ Call agent with summarized context
     result = agent.invoke(
         {
-            "messages": history + [("user", user_input)]
+            "messages": summarized_history + [("user", user_input)]
         },
         config=config
     )
